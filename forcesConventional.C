@@ -118,6 +118,7 @@ Foam::functionObjects::forcesConventional::forcesConventional
     UName_(word::null),
     rhoRef_(dict.lookup<scalar>("rho")),
     pRef_(0),
+    porosity_(false),
     forceP_(),
     forceV_(),
     momentP_(),
@@ -155,6 +156,9 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
 
     // Reference pressure, 0 by default
     pRef_ = dict.lookupOrDefault<scalar>("pRef", 0.0);
+
+    // Calculate for a porous body?
+    dict.readIfPresent("porosity", porosity_);
 
     return true;
 }
@@ -194,23 +198,52 @@ bool Foam::functionObjects::forcesConventional::execute()
             //mesh_.C().boundaryField()[patchi] - coordSys_.origin()
         );
 
-        // Get normal force vector field (pressure)
-        vectorField fN
-        (
-            rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
-        );
+        if (!porosity_)
+        {
+            // Calculate forces/moments for a solid body
+            Info << "Calculating forces/moments for a solid body." << endl;
 
-        // Get tangential force vector field (viscous)
-        vectorField fT
-        (
-            Sfb[patchi] & devTaub[patchi]
-        );
+            // Get normal force vector field (pressure)
+            vectorField fN
+            (
+                rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
+            );
 
-        forceP_ += sum(fN);
-        forceV_ += sum(fT);
+            // Get tangential force vector field (viscous)
+            vectorField fT
+            (
+                Sfb[patchi] & devTaub[patchi]
+            );
 
-        momentP_ += sum(Md^fN);
-        momentV_ += sum(Md^fT);
+            forceP_ += sum(fN);
+            forceV_ += sum(fT);
+
+            momentP_ += sum(Md^fN);
+            momentV_ += sum(Md^fT);
+        }
+        else
+        {
+            // Calculate forces/moments for a porous body
+            Info << "Calculating forces/moments for a porous body." << endl;
+
+            // Get normal force vector field (pressure)
+            vectorField fN
+            (
+                rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
+            );
+
+            // Get tangential force vector field (viscous)
+            vectorField fT
+            (
+                Sfb[patchi] & devTaub[patchi]
+            );
+
+            forceP_ += sum(fN);
+            forceV_ += sum(fT);
+
+            momentP_ += sum(Md^fN);
+            momentV_ += sum(Md^fT);
+        }
     }
 
     //Info<< "forceP_ = " << forceP_ << nl << forceV_ << endl;

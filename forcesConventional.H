@@ -107,6 +107,9 @@ private:
 
             //- Reference pressure
             scalar pRef_;
+
+            //- Flag to calculate forces for a porous body
+            bool porosity_;
         
         //Forces
 

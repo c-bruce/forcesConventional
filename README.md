@@ -11,7 +11,7 @@ To do:
 - Write log file header [DONE]
 - Implement Conventional forces calculation (solid body) [DONE]
 - Implement Conventional moments calculation (solid body) [DONE]
-- Solid body/porous body boolean
+- Solid body/porous body boolean [DONE]
 - Porous body pressure force calculation
 - Porous body viscous force calculation
 - Porous body porous force calculation
