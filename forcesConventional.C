@@ -119,7 +119,9 @@ Foam::functionObjects::forcesConventional::forcesConventional
     rhoRef_(dict.lookup<scalar>("rho")),
     pRef_(0),
     forceP_(),
-    forceV_()
+    forceV_(),
+    momentP_(),
+    momentV_()
 {
     read(dict); // Read dict data
     resetNames(createFileNames(dict)); // Setup files for saving data
@@ -165,6 +167,9 @@ bool Foam::functionObjects::forcesConventional::execute()
     forceP_ = Zero;
     forceV_ = Zero;
 
+    momentP_ = Zero;
+    momentV_ = Zero;
+
     // Get mesh boundary field
     const surfaceVectorField::Boundary& Sfb = mesh_.Sf().boundaryField();
 
@@ -182,6 +187,13 @@ bool Foam::functionObjects::forcesConventional::execute()
     {
         label patchi = iter.key();
 
+        // Get boundary field positions
+        vectorField Md
+        (
+            mesh_.C().boundaryField()[patchi]
+            //mesh_.C().boundaryField()[patchi] - coordSys_.origin()
+        );
+
         // Get normal force vector field (pressure)
         vectorField fN
         (
@@ -196,6 +208,9 @@ bool Foam::functionObjects::forcesConventional::execute()
 
         forceP_ += sum(fN);
         forceV_ += sum(fT);
+
+        momentP_ += sum(Md^fN);
+        momentV_ += sum(Md^fT);
     }
 
     //Info<< "forceP_ = " << forceP_ << nl << forceV_ << endl;
@@ -206,6 +221,7 @@ bool Foam::functionObjects::forcesConventional::execute()
 bool Foam::functionObjects::forcesConventional::end()
 {
     //----- Run on final timestep -----//
+
     return true;
 }
 
@@ -220,8 +236,11 @@ bool Foam::functionObjects::forcesConventional::write()
 
         writeTime(file(fileID::mainFile));
 
-        file(fileID::mainFile) << tab << forceP_ << tab
-            << forceV_ << endl;
+        file(fileID::mainFile) << tab
+            << forceP_ << tab
+            << forceV_ << tab
+            << momentP_ << tab
+            << momentV_ << endl;
     }
     
     return true;

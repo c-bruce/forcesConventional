@@ -1,4 +1,4 @@
-Function object for calulating forces and moments on a solid body using conventional approach.
+Function object for calulating forces and moments on a solid or porous body using conventional approach.
 
 To do:
 - How to read in dict data [DONE]
@@ -10,4 +10,9 @@ To do:
 - Write out timestamp and vector to log file [DONE]
 - Write log file header [DONE]
 - Implement Conventional forces calculation (solid body) [DONE]
-- Implement Conventional moments calculation (solid body)
+- Implement Conventional moments calculation (solid body) [DONE]
+- Solid body/porous body boolean
+- Porous body pressure force calculation
+- Porous body viscous force calculation
+- Porous body porous force calculation
+- Non (0 0 0) CoR for moment calculation

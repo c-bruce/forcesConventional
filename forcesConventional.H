@@ -107,21 +107,22 @@ private:
 
             //- Reference pressure
             scalar pRef_;
+        
+        //Forces
 
-        //- word
-        //word wordData_;
+            //- Pressure
+            vector forceP_;
 
-        //- vector
-        //vector vectorData_;
+            //- Viscous
+            vector forceV_;
 
-        //- label
-        //label labelData_;
+        // Moments
 
-        //- Pressure force
-        vector forceP_;
+            //- Pressure
+            vector momentP_;
 
-        //- Viscous force
-        vector forceV_;
+            //- Viscous
+            vector momentV_;
 
     // Private Member Functions
 
