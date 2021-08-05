@@ -12,7 +12,8 @@ To do:
 - Implement Conventional forces calculation (solid body) [DONE]
 - Implement Conventional moments calculation (solid body) [DONE]
 - Solid body/porous body boolean [DONE]
-- Porous body pressure force calculation
-- Porous body viscous force calculation
-- Porous body porous force calculation
+- Porous body pressure force calculation [DONE]
+- Porous body viscous force calculation [DONE]
+- Porous body porous force calculation [DONE]
 - Non (0 0 0) CoR for moment calculation
+- Parallel implementation

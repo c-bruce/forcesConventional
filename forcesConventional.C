@@ -114,15 +114,21 @@ Foam::functionObjects::forcesConventional::forcesConventional
     fvMeshFunctionObject(name, runTime, dict),
     logFiles(obr_, name),
     patchSet_(),
+    porousZoneSet_(),
     pName_(word::null),
     UName_(word::null),
+    K_Name_(word::null),
     rhoRef_(dict.lookup<scalar>("rho")),
     pRef_(0),
     porosity_(false),
     forceP_(),
     forceV_(),
+    forceD_(),
+    forceF_(),
     momentP_(),
-    momentV_()
+    momentV_(),
+    momentD_(),
+    momentF_()
 {
     read(dict); // Read dict data
     resetNames(createFileNames(dict)); // Setup files for saving data
@@ -146,10 +152,19 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
 
     patchSet_ = pbm.patchSet(wordReList(dict.lookup("patches")));
 
+    // Get cell zone mesh on porousZone
+    const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone"));
+
+    const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
+
+    porousZoneSet_ = zoneMesh[cellZoneID];
+
     // Get p and U field names
     pName_ = dict.lookupOrDefault<word>("p", "p");
 
     UName_ = dict.lookupOrDefault<word>("U", "U");
+
+    K_Name_ = dict.lookupOrDefault<word>("K_", "K_");
 
     // Get density
     dict.lookup("rho") >> rhoRef_;
@@ -170,15 +185,25 @@ bool Foam::functionObjects::forcesConventional::execute()
     // Set force/moment vectors = Zero
     forceP_ = Zero;
     forceV_ = Zero;
+    forceD_ = Zero;
+    forceF_ = Zero;
 
     momentP_ = Zero;
     momentV_ = Zero;
+    momentD_ = Zero;
+    momentF_ = Zero;
 
     // Get mesh boundary field
     const surfaceVectorField::Boundary& Sfb = mesh_.Sf().boundaryField();
 
     // Get pressure field
     const volScalarField& p = obr_.lookupObject<volScalarField>(pName_);
+
+    // Get velocity field
+    const volVectorField& U = obr_.lookupObject<volVectorField>(UName_);
+    
+    // Get permeability field
+    const volScalarField& K_ = obr_.lookupObject<volScalarField>(K_Name_);
 
     // Get viscous stress tensor field
     tmp<volSymmTensorField> tdevTau = devTau();
@@ -189,6 +214,9 @@ bool Foam::functionObjects::forcesConventional::execute()
 
     forAllConstIter(labelHashSet, patchSet_, iter)
     {
+        // Calculate pressure and viscous force/moment contributions
+        Info << "Calculating pressure and viscous force/moment contributions." << endl;
+
         label patchi = iter.key();
 
         // Get boundary field positions
@@ -198,55 +226,95 @@ bool Foam::functionObjects::forcesConventional::execute()
             //mesh_.C().boundaryField()[patchi] - coordSys_.origin()
         );
 
-        if (!porosity_)
-        {
-            // Calculate forces/moments for a solid body
-            Info << "Calculating forces/moments for a solid body." << endl;
+        // Get normal force vector field (pressure)
+        vectorField fN
+        (
+            rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
+        );
 
-            // Get normal force vector field (pressure)
-            vectorField fN
-            (
-                rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
-            );
+        // Get tangential force vector field (viscous)
+        vectorField fT
+        (
+            Sfb[patchi] & devTaub[patchi]
+        );
 
-            // Get tangential force vector field (viscous)
-            vectorField fT
-            (
-                Sfb[patchi] & devTaub[patchi]
-            );
+        forceP_ += sum(fN);
+        forceV_ += sum(fT);
 
-            forceP_ += sum(fN);
-            forceV_ += sum(fT);
-
-            momentP_ += sum(Md^fN);
-            momentV_ += sum(Md^fT);
-        }
-        else
-        {
-            // Calculate forces/moments for a porous body
-            Info << "Calculating forces/moments for a porous body." << endl;
-
-            // Get normal force vector field (pressure)
-            vectorField fN
-            (
-                rhoRef_*Sfb[patchi]*(p.boundaryField()[patchi] - pRef)
-            );
-
-            // Get tangential force vector field (viscous)
-            vectorField fT
-            (
-                Sfb[patchi] & devTaub[patchi]
-            );
-
-            forceP_ += sum(fN);
-            forceV_ += sum(fT);
-
-            momentP_ += sum(Md^fN);
-            momentV_ += sum(Md^fT);
-        }
+        momentP_ += sum(Md^fN);
+        momentV_ += sum(Md^fT);
     }
 
+    if (porosity_)
+    {
+        // Calculate porous force/moment contributions
+        Info << "Calculating porous force/moment contributions." << endl;
+
+        // Get nu and cf
+        const dictionary& transportProperties = obr_.lookupObject<dictionary>("transportProperties");
+        
+        dimensionedScalar nu
+        (
+            "nu",
+            dimViscosity,
+            transportProperties.lookup("nu")
+        );
+
+        dimensionedScalar cf
+        (
+            "cf",
+            dimless,
+            transportProperties.lookup("cf")
+        );
+
+        forAll(porousZoneSet_, i)
+        {
+            // Get Darcy contribution from ith cell in porousZoneSet_
+            vector fD
+            (
+                rhoRef_
+                *mesh_.V()[porousZoneSet_[i]]
+                *((nu.value()/K_[porousZoneSet_[i]])*U[porousZoneSet_[i]])
+            );
+
+            // Get Forchheimer contribution from ith cell in porousZoneSet_
+            vector fF
+            (
+                rhoRef_
+                *mesh_.V()[porousZoneSet_[i]]
+                *((cf.value()/sqrt(K_[porousZoneSet_[i]]))*mag(U[porousZoneSet_[i]])*U[porousZoneSet_[i]])
+            );
+
+            forceD_ += fD;
+            forceF_ += fF;
+
+            momentD_ += mesh_.C()[porousZoneSet_[i]]^fD;
+            momentF_ += mesh_.C()[porousZoneSet_[i]]^fF;
+        }
+
+        // Parallel
+        //Pstream::gather(forceD_, plusEqOp<vector>());
+        //Pstream::gather(forceF_, plusEqOp<vector>());
+        //Pstream::gather(momentD_, plusEqOp<vector>());
+        //Pstream::gather(momentF_, plusEqOp<vector>());
+        //Pstream::scatter(forceD_);
+        //Pstream::scatter(forceF_);
+        //Pstream::scatter(momentD_);
+        //Pstream::scatter(momentF_);
+    }
+
+    // Parallel
+    //Pstream::gather(forceP_, plusEqOp<vector>());
+    //Pstream::gather(forceV_, plusEqOp<vector>());
+    //Pstream::gather(momentP_, plusEqOp<vector>());
+    //Pstream::gather(momentV_, plusEqOp<vector>());
+    //Pstream::scatter(forceP_);
+    //Pstream::scatter(forceV_);
+    //Pstream::scatter(momentP_);
+    //Pstream::scatter(momentV_);
+
     //Info<< "forceP_ = " << forceP_ << nl << forceV_ << endl;
+    //Info<< "forceF_ = " << forceF_ << endl;
 
     return true;
 }
@@ -269,11 +337,27 @@ bool Foam::functionObjects::forcesConventional::write()
 
         writeTime(file(fileID::mainFile));
 
-        file(fileID::mainFile) << tab
+        if (!porosity_)
+        {
+            file(fileID::mainFile) << tab
             << forceP_ << tab
             << forceV_ << tab
             << momentP_ << tab
             << momentV_ << endl;
+        }
+        else
+        {
+            file(fileID::mainFile) << tab
+            << forceP_ << tab
+            << forceV_ << tab
+            << forceD_ << tab
+            << forceF_ << tab
+            << momentP_ << tab
+            << momentD_ << tab
+            << momentF_ << tab
+            << momentV_ << endl;
+        }
+        
     }
     
     return true;

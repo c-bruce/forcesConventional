@@ -96,11 +96,17 @@ private:
             //- Patches to integrate forces over
             labelHashSet patchSet_;
 
+            //- Cell zone to integrate forces over (for porous body)
+            labelList porousZoneSet_;
+
             //- Name of pressure field
             word pName_;
 
             //- Name of velocity field
             word UName_;
+
+            //- Name of permeability field
+            word K_Name_;
 
             //- Reference density for incompressible calculations
             scalar rhoRef_;
@@ -119,6 +125,12 @@ private:
             //- Viscous
             vector forceV_;
 
+            //- Darcy
+            vector forceD_;
+
+            //- Forchheimer
+            vector forceF_;
+
         // Moments
 
             //- Pressure
@@ -126,6 +138,12 @@ private:
 
             //- Viscous
             vector momentV_;
+
+            //- Darcy
+            vector momentD_;
+
+            //- Forchheimer
+            vector momentF_;
 
     // Private Member Functions
 
