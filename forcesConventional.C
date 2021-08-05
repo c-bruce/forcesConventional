@@ -293,25 +293,25 @@ bool Foam::functionObjects::forcesConventional::execute()
         }
 
         // Parallel
-        //Pstream::gather(forceD_, plusEqOp<vector>());
-        //Pstream::gather(forceF_, plusEqOp<vector>());
-        //Pstream::gather(momentD_, plusEqOp<vector>());
-        //Pstream::gather(momentF_, plusEqOp<vector>());
-        //Pstream::scatter(forceD_);
-        //Pstream::scatter(forceF_);
-        //Pstream::scatter(momentD_);
-        //Pstream::scatter(momentF_);
+        Pstream::combineGather(forceD_, plusEqOp<vector>());
+        Pstream::combineGather(forceF_, plusEqOp<vector>());
+        Pstream::combineGather(momentD_, plusEqOp<vector>());
+        Pstream::combineGather(momentF_, plusEqOp<vector>());
+        Pstream::combineScatter(forceD_);
+        Pstream::combineScatter(forceF_);
+        Pstream::combineScatter(momentD_);
+        Pstream::combineScatter(momentF_);
     }
 
     // Parallel
-    //Pstream::gather(forceP_, plusEqOp<vector>());
-    //Pstream::gather(forceV_, plusEqOp<vector>());
-    //Pstream::gather(momentP_, plusEqOp<vector>());
-    //Pstream::gather(momentV_, plusEqOp<vector>());
-    //Pstream::scatter(forceP_);
-    //Pstream::scatter(forceV_);
-    //Pstream::scatter(momentP_);
-    //Pstream::scatter(momentV_);
+    Pstream::combineGather(forceP_, plusEqOp<vector>());
+    Pstream::combineGather(forceV_, plusEqOp<vector>());
+    Pstream::combineGather(momentP_, plusEqOp<vector>());
+    Pstream::combineGather(momentV_, plusEqOp<vector>());
+    Pstream::combineScatter(forceP_);
+    Pstream::combineScatter(forceV_);
+    Pstream::combineScatter(momentP_);
+    Pstream::combineScatter(momentV_);
 
     //Info<< "forceP_ = " << forceP_ << nl << forceV_ << endl;
     //Info<< "forceF_ = " << forceF_ << endl;
