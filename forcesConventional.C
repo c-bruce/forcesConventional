@@ -69,7 +69,29 @@ void Foam::functionObjects::forcesConventional::writeFileHeader(const label i)
         case fileID::mainFile:
         {
             // Force data
-            writeHeader(file(i), "Forces");
+            //writeHeader(file(i), "Forces");
+            if (!porosity_)
+            {   
+                file(i)
+                << "time,"
+                << "pressure_fx" << "," << "pressure_fy" << "," << "pressure_fz" << ","
+                << "viscous_fx" << "," << "viscous_fy" << "," << "viscous_fz" << ","
+                << "pressure_mx" << "," << "pressure_my" << "," << "pressure_mz" << ","
+                << "viscous_mx" << "," << "viscous_my" << "," << "viscous_mz";
+            }
+            else
+            {
+                file(i)
+                << "time,"
+                << "pressure_fx" << "," << "pressure_fy" << "," << "pressure_fz" << ","
+                << "viscous_fx" << "," << "viscous_fy" << "," << "viscous_fz" << ","
+                << "darcy_fx" << "," << "darcy_fy" << "," << "darcy_fz" << ","
+                << "forchheimer_fx" << "," << "forchheimer_fy" << "," << "forchheimer_fz" << ","
+                << "pressure_mx" << "," << "pressure_my" << "," << "pressure_mz" << ","
+                << "viscous_mx" << "," << "viscous_my" << "," << "viscous_mz" << ","
+                << "darcy_mx" << "," << "darcy_my" << "," << "darcy_mz" << ","
+                << "forchheimer_mx" << "," << "forchheimer_my" << "," << "forchheimer_mz";
+            }
 
             break;
         }
@@ -313,7 +335,7 @@ bool Foam::functionObjects::forcesConventional::execute()
     Pstream::combineScatter(momentP_);
     Pstream::combineScatter(momentV_);
 
-    //Info<< "forceP_ = " << forceP_ << nl << forceV_ << endl;
+    //Info<< "forceP_ = " << forceP_ << nl << forceP_.x() << endl;
     //Info<< "forceF_ = " << forceF_ << endl;
 
     return true;
@@ -339,25 +361,48 @@ bool Foam::functionObjects::forcesConventional::write()
 
         if (!porosity_)
         {
-            file(fileID::mainFile) << tab
-            << forceP_ << tab
-            << forceV_ << tab
-            << momentP_ << tab
-            << momentV_ << endl;
+            file(fileID::mainFile) << ","
+            << forceP_.x() << ","
+            << forceP_.y() << ","
+            << forceP_.z() << ","
+            << forceV_.x() << ","
+            << forceV_.y() << ","
+            << forceV_.z() << ","
+            << momentP_.x() << ","
+            << momentP_.y() << ","
+            << momentP_.z() << ","
+            << momentV_.x() << ","
+            << momentV_.y() << ","
+            << momentV_.z() << endl;
         }
         else
         {
-            file(fileID::mainFile) << tab
-            << forceP_ << tab
-            << forceV_ << tab
-            << forceD_ << tab
-            << forceF_ << tab
-            << momentP_ << tab
-            << momentD_ << tab
-            << momentF_ << tab
-            << momentV_ << endl;
+            file(fileID::mainFile) << ","
+            << forceP_.x() << ","
+            << forceP_.y() << ","
+            << forceP_.z() << ","
+            << forceV_.x() << ","
+            << forceV_.y() << ","
+            << forceV_.z() << ","
+            << forceD_.x() << ","
+            << forceD_.y() << ","
+            << forceD_.z() << ","
+            << forceF_.x() << ","
+            << forceF_.y() << ","
+            << forceF_.z() << ","
+            << momentP_.x() << ","
+            << momentP_.y() << ","
+            << momentP_.z() << ","
+            << momentV_.x() << ","
+            << momentV_.y() << ","
+            << momentV_.z() << ","
+            << momentD_.x() << ","
+            << momentD_.y() << ","
+            << momentD_.z() << ","
+            << momentF_.x() << ","
+            << momentF_.y() << ","
+            << momentF_.z() << endl;
         }
-        
     }
     
     return true;
