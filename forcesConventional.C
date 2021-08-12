@@ -175,11 +175,14 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
     patchSet_ = pbm.patchSet(wordReList(dict.lookup("patches")));
 
     // Get cell zone mesh on porousZone
-    const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone"));
+    if (porosity_)
+    {
+        const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone"));
 
-    const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
+        const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
 
-    porousZoneSet_ = zoneMesh[cellZoneID];
+        porousZoneSet_ = zoneMesh[cellZoneID];
+    }
 
     // Get p and U field names
     pName_ = dict.lookupOrDefault<word>("p", "p");
@@ -223,9 +226,6 @@ bool Foam::functionObjects::forcesConventional::execute()
 
     // Get velocity field
     const volVectorField& U = obr_.lookupObject<volVectorField>(UName_);
-    
-    // Get permeability field
-    const volScalarField& K_ = obr_.lookupObject<volScalarField>(K_Name_);
 
     // Get viscous stress tensor field
     tmp<volSymmTensorField> tdevTau = devTau();
@@ -272,6 +272,9 @@ bool Foam::functionObjects::forcesConventional::execute()
         // Calculate porous force/moment contributions
         Info << "Calculating porous force/moment contributions." << endl;
 
+        // Get permeability field
+        const volScalarField& K_ = obr_.lookupObject<volScalarField>(K_Name_);
+        
         // Get nu and cf
         const dictionary& transportProperties = obr_.lookupObject<dictionary>("transportProperties");
         
