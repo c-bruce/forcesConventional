@@ -362,46 +362,22 @@ bool Foam::functionObjects::forcesConventional::write()
         if (!porosity_)
         {
             file(fileID::mainFile) << ","
-            << forceP_.x() << ","
-            << forceP_.y() << ","
-            << forceP_.z() << ","
-            << forceV_.x() << ","
-            << forceV_.y() << ","
-            << forceV_.z() << ","
-            << momentP_.x() << ","
-            << momentP_.y() << ","
-            << momentP_.z() << ","
-            << momentV_.x() << ","
-            << momentV_.y() << ","
-            << momentV_.z() << endl;
+            << forceP_.x() << "," << forceP_.y() << "," << forceP_.z() << ","
+            << forceV_.x() << "," << forceV_.y() << "," << forceV_.z() << ","
+            << momentP_.x() << "," << momentP_.y() << "," << momentP_.z() << ","
+            << momentV_.x() << "," << momentV_.y() << "," << momentV_.z() << endl;
         }
         else
         {
             file(fileID::mainFile) << ","
-            << forceP_.x() << ","
-            << forceP_.y() << ","
-            << forceP_.z() << ","
-            << forceV_.x() << ","
-            << forceV_.y() << ","
-            << forceV_.z() << ","
-            << forceD_.x() << ","
-            << forceD_.y() << ","
-            << forceD_.z() << ","
-            << forceF_.x() << ","
-            << forceF_.y() << ","
-            << forceF_.z() << ","
-            << momentP_.x() << ","
-            << momentP_.y() << ","
-            << momentP_.z() << ","
-            << momentV_.x() << ","
-            << momentV_.y() << ","
-            << momentV_.z() << ","
-            << momentD_.x() << ","
-            << momentD_.y() << ","
-            << momentD_.z() << ","
-            << momentF_.x() << ","
-            << momentF_.y() << ","
-            << momentF_.z() << endl;
+            << forceP_.x() << "," << forceP_.y() << "," << forceP_.z() << ","
+            << forceV_.x() << "," << forceV_.y() << "," << forceV_.z() << ","
+            << forceD_.x() << "," << forceD_.y() << "," << forceD_.z() << ","
+            << forceF_.x() << "," << forceF_.y() << "," << forceF_.z() << ","
+            << momentP_.x() << "," << momentP_.y() << "," << momentP_.z() << ","
+            << momentV_.x() << "," << momentV_.y() << "," << momentV_.z() << ","
+            << momentD_.x() << "," << momentD_.y() << "," << momentD_.z() << ","
+            << momentF_.x() << "," << momentF_.y() << "," << momentF_.z() << endl;
         }
     }
     
