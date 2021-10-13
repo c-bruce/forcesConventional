@@ -17,3 +17,4 @@ To do:
 - Porous body porous force calculation [DONE]
 - Non (0 0 0) CoR for moment calculation
 - Parallel implementation
+- Test OF2106 update

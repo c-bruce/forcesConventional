@@ -147,11 +147,13 @@ private:
 
     // Private Member Functions
 
-        using logFiles::file;
+        //using logFiles::file; // OF9
+        using logFiles::files; // OF2106
 
         Ostream& file(const fileID fid)
         {
-            return logFiles::file(label(fid));
+            //using logFiles::file; // OF9
+            return logFiles::files(label(fid)); // OF2106
         }
 
         //- Create file names

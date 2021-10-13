@@ -58,7 +58,8 @@ Foam::wordList Foam::functionObjects::forcesConventional::createFileNames
     // Name for file(fileID::mainFile=0)
     names.append(forceType);
 
-    return move(names);
+    //return move(names); // OF9
+    return names; // OF2106
 }
 
 void Foam::functionObjects::forcesConventional::writeFileHeader(const label i)
@@ -72,7 +73,8 @@ void Foam::functionObjects::forcesConventional::writeFileHeader(const label i)
             //writeHeader(file(i), "Forces");
             if (!porosity_)
             {   
-                file(i)
+                //file(i) // OF9
+                files(i) // OF2106
                 << "time,"
                 << "pressure_fx" << "," << "pressure_fy" << "," << "pressure_fz" << ","
                 << "viscous_fx" << "," << "viscous_fy" << "," << "viscous_fz" << ","
@@ -81,7 +83,8 @@ void Foam::functionObjects::forcesConventional::writeFileHeader(const label i)
             }
             else
             {
-                file(i)
+                //file(i) // OF9
+                files(i) // OF2106
                 << "time,"
                 << "pressure_fx" << "," << "pressure_fy" << "," << "pressure_fz" << ","
                 << "viscous_fx" << "," << "viscous_fy" << "," << "viscous_fz" << ","
@@ -103,7 +106,8 @@ void Foam::functionObjects::forcesConventional::writeFileHeader(const label i)
         }
     }
 
-    file(i) << endl;
+    //file(i) << endl; // OF9
+    files(i) << endl; // OF2106
 }
 
 Foam::tmp<Foam::volSymmTensorField>
@@ -115,7 +119,8 @@ Foam::functionObjects::forcesConventional::devTau() const
     (
         "nu",
         dimViscosity,
-        transportProperties.lookup("nu")
+        transportProperties // OF2106
+        //transportProperties.lookup("nu") // OF9
     );
 
     const volVectorField& U = obr_.lookupObject<volVectorField>(UName_);
@@ -140,7 +145,8 @@ Foam::functionObjects::forcesConventional::forcesConventional
     pName_(word::null),
     UName_(word::null),
     K_Name_(word::null),
-    rhoRef_(dict.lookup<scalar>("rho")),
+    //rhoRef_(dict.lookup<scalar>("rho")), // OF9
+    rhoRef_(dict.get<scalar>("rho")), // OF2106
     pRef_(0),
     porosity_(false),
     forceP_(),
@@ -177,7 +183,8 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
     // Get cell zone mesh on porousZone
     if (porosity_)
     {
-        const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone"));
+        //const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone")); // OF9
+        const label cellZoneID = mesh_.cellZones().findZoneID("porousZone"); // OF2106
 
         const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
 
@@ -282,14 +289,16 @@ bool Foam::functionObjects::forcesConventional::execute()
         (
             "nu",
             dimViscosity,
-            transportProperties.lookup("nu")
+            transportProperties // OF2106
+            //transportProperties.lookup("nu") // OF9
         );
 
         dimensionedScalar cf
         (
             "cf",
             dimless,
-            transportProperties.lookup("cf")
+            transportProperties // OF2106
+            //transportProperties.lookup("cf") // OF9
         );
 
         forAll(porousZoneSet_, i)
@@ -360,7 +369,8 @@ bool Foam::functionObjects::forcesConventional::write()
     {
         logFiles::write();
 
-        writeTime(file(fileID::mainFile));
+        //writeTime(file(fileID::mainFile)); // OF9
+        writeCurrentTime(file(fileID::mainFile)); // OF2106
 
         if (!porosity_)
         {
