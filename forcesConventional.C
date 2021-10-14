@@ -175,22 +175,6 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
 {
     //----- Run on first timestep -----//
 
-    // Get boundary mesh on patchSet_
-    const polyBoundaryMesh& pbm = mesh_.boundaryMesh();
-
-    patchSet_ = pbm.patchSet(wordReList(dict.lookup("patches")));
-
-    // Get cell zone mesh on porousZone
-    if (porosity_)
-    {
-        //const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone")); // OF9
-        const label cellZoneID = mesh_.cellZones().findZoneID("porousZone"); // OF2106
-
-        const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
-
-        porousZoneSet_ = zoneMesh[cellZoneID];
-    }
-
     // Get p and U field names
     pName_ = dict.lookupOrDefault<word>("p", "p");
 
@@ -206,6 +190,22 @@ bool Foam::functionObjects::forcesConventional::read(const dictionary& dict)
 
     // Calculate for a porous body?
     dict.readIfPresent("porosity", porosity_);
+
+    // Get boundary mesh on patchSet_
+    const polyBoundaryMesh& pbm = mesh_.boundaryMesh();
+
+    patchSet_ = pbm.patchSet(wordReList(dict.lookup("patches")));
+
+    // Get cell zone mesh on porousZone
+    if (porosity_)
+    {
+        //const label cellZoneID = mesh_.cellZones().findZoneID(dict.lookup("porousZone")); // OF9
+        const label cellZoneID = mesh_.cellZones().findZoneID(dict.get<word>("porousZone")); // OF2106
+
+        const cellZoneMesh& zoneMesh = mesh_.cellZones()[cellZoneID].zoneMesh();
+
+        porousZoneSet_ = zoneMesh[cellZoneID];
+    }
 
     return true;
 }
@@ -348,7 +348,7 @@ bool Foam::functionObjects::forcesConventional::execute()
     Pstream::combineScatter(momentV_);
 
     //Info<< "forceP_ = " << forceP_ << nl << forceP_.x() << endl;
-    //Info<< "forceF_ = " << forceF_ << endl;
+    //Info<< "forceD_ = " << forceD_ << endl;
 
     return true;
 }
