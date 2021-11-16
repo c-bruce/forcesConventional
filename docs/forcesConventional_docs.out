@@ -1,0 +1,13 @@
+\BOOKMARK [0][-]{chapter.1}{Governing equations}{}% 1
+\BOOKMARK [1][-]{section.1.1}{Navier Stokes}{chapter.1}% 2
+\BOOKMARK [1][-]{section.1.2}{Darcy Brinkman Forchheimer}{chapter.1}% 3
+\BOOKMARK [0][-]{chapter.2}{Forces and moments calculation}{}% 4
+\BOOKMARK [1][-]{section.2.1}{Force and moment components}{chapter.2}% 5
+\BOOKMARK [2][-]{subsection.2.1.1}{Pressure component}{section.2.1}% 6
+\BOOKMARK [2][-]{subsection.2.1.2}{Viscous component}{section.2.1}% 7
+\BOOKMARK [2][-]{subsection.2.1.3}{Porous \(Darcy\) component}{section.2.1}% 8
+\BOOKMARK [2][-]{subsection.2.1.4}{Porous \(Forchheimer\) component}{section.2.1}% 9
+\BOOKMARK [1][-]{section.2.2}{Solid body forces and moments}{chapter.2}% 10
+\BOOKMARK [1][-]{section.2.3}{Porous body forces and moments}{chapter.2}% 11
+\BOOKMARK [1][-]{section.2.4}{forcesConventional functionObject}{chapter.2}% 12
+\BOOKMARK [2][-]{subsection.2.4.1}{forcesConventional verification}{section.2.4}% 13
